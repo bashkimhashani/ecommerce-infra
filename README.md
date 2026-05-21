@@ -15,22 +15,22 @@
    cp .env.example .env
 
 3. Build and start everything:
-   docker-compose up --build
+   docker compose up --build
 
 4. In a new terminal run migrations:
-   docker-compose exec backend python manage.py migrate
+   docker compose exec web python manage.py migrate
 
 5. Create a superuser (optional):
-   docker-compose exec backend python manage.py createsuperuser
+   docker compose exec web python manage.py createsuperuser
 
 ## Daily usage
-- Start:      docker-compose up
-- Stop:       docker-compose down
-- Logs:       docker-compose logs -f backend
+- Start:      docker compose up
+- Stop:       docker compose down
+- Logs:       docker compose logs -f web
 - New migrations from a teammate:
-              docker-compose exec backend python manage.py migrate
+              docker compose exec web python manage.py migrate
 - Dependency changes (requirements.txt or package.json changed):
-              docker-compose up --build
+              docker compose up --build
 
 ## URLs
 - Frontend:   http://localhost:5173
