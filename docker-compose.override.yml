@@ -1,0 +1,40 @@
+services:
+  web:
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DEBUG: "True"
+      PYTHONUNBUFFERED: "1"
+      RUN_STARTUP_TASKS: "true"
+    volumes:
+      - ../ecommerce-backend:/app
+      - backend_staticfiles:/app/staticfiles
+
+  celery_worker:
+    environment:
+      DEBUG: "True"
+      PYTHONUNBUFFERED: "1"
+      RUN_STARTUP_TASKS: "false"
+    volumes:
+      - ../ecommerce-backend:/app
+
+  celery_beat:
+    environment:
+      DEBUG: "True"
+      PYTHONUNBUFFERED: "1"
+      RUN_STARTUP_TASKS: "false"
+    volumes:
+      - ../ecommerce-backend:/app
+
+  frontend:
+    command: npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ../ecommerce-frontend:/app
+      - frontend_node_modules:/app/node_modules
+
+volumes:
+  backend_staticfiles:
+  frontend_node_modules:
