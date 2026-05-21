@@ -1,7 +1,4 @@
-version: '3.9'
-
 services:
-
   db:
     image: postgres:15
     restart: unless-stopped
@@ -20,7 +17,7 @@ services:
     ports:
       - "6379:6379"
 
-  backend:
+  web:
     build: ../ecommerce-backend
     restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:8000
@@ -34,7 +31,7 @@ services:
       - db
       - redis
 
-  celery:
+  celery_worker:
     build: ../ecommerce-backend
     restart: unless-stopped
     command: celery -A config worker --loglevel=info
@@ -45,6 +42,20 @@ services:
     depends_on:
       - redis
       - db
+      - web
+
+  celery_beat:
+    build: ../ecommerce-backend
+    restart: unless-stopped
+    command: celery -A config beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    volumes:
+      - ../ecommerce-backend:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+      - web
 
   frontend:
     build: ../ecommerce-frontend
@@ -55,7 +66,7 @@ services:
     ports:
       - "5173:5173"
     depends_on:
-      - backend
+      - web
 
 volumes:
   postgres_data:
