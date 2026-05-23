@@ -4,7 +4,7 @@ services:
     environment:
       DEBUG: "True"
       PYTHONUNBUFFERED: "1"
-      RUN_STARTUP_TASKS: "true"
+      RUN_STARTUP_TASKS: "false"
     volumes:
       - ../ecommerce-backend:/app
       - backend_staticfiles:/app/staticfiles
