@@ -20,7 +20,10 @@
 4. In a new terminal run migrations:
    docker compose exec web python manage.py migrate
 
-5. Create a superuser (optional):
+5. Seed demo tenant, users, catalog, inventory, cart, and order data:
+   docker compose exec web python manage.py seed_demo_data
+
+6. Create a superuser (optional):
    docker compose exec web python manage.py createsuperuser
 
 ## Daily usage
@@ -29,6 +32,8 @@
 - Logs:       docker compose logs -f web
 - New migrations from a teammate:
               docker compose exec web python manage.py migrate
+- Refresh demo database data:
+              docker compose exec web python manage.py seed_demo_data
 - Dependency changes (requirements.txt or package.json changed):
               docker compose up --build
 
