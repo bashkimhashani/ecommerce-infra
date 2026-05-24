@@ -1,5 +1,8 @@
 # Ecommerce Infra
 
+## Documentation
+- [Architecture](ARCHITECTURE.md)
+
 ## Requirements
 - Docker Desktop
 - Git
