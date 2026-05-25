@@ -47,6 +47,9 @@ For a deeper architecture description, see [ARCHITECTURE.md](ARCHITECTURE.md).
 | `celery_worker` | Runs async jobs | internal |
 | `celery_beat` | Runs scheduled jobs | internal |
 
+## Documentation
+- [Architecture](ARCHITECTURE.md)
+
 ## Requirements
 
 - Docker Desktop
