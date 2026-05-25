@@ -1,27 +1,20 @@
-# Distributed Ecommerce Platform
+# Vendora Infrastructure
 
-This repository contains the local infrastructure for the distributed ecommerce
-project. It runs the frontend, backend, database, cache, and background workers
-together with Docker Compose so the full system can be started from one place.
+This repository contains the Docker Compose setup for the Vendora distributed
+ecommerce project. It starts the frontend, backend, PostgreSQL, Redis, Celery
+worker, and Celery Beat services together.
 
 ## Project Overview
 
-The application is split into three repositories that should be cloned into the
-same parent folder:
+Vendora is split into three sibling repositories:
 
-- `ecommerce-frontend`: Vue 3 single-page application for customers, vendors,
-  checkout, account flows, and AI chat.
-- `ecommerce-backend`: Django REST API for authentication, catalog, cart,
-  checkout, orders, vendors, tenants, AI, notifications, and background jobs.
-- `ecommerce-infra`: Docker Compose setup, environment configuration, and
-  project-level documentation.
+- `ecommerce-backend` - Django REST API
+- `ecommerce-frontend` - Vue 3 frontend
+- `ecommerce-infra` - Docker Compose, environment configuration, and local orchestration
 
-The frontend talks to the backend over HTTP using `/api/v1/*` endpoints. The
-backend stores durable data in PostgreSQL, uses Redis for cache and async task
-coordination, and runs Celery workers for background jobs such as emails,
-exports, and scheduled AI reports.
-
-For a deeper architecture description, see [ARCHITECTURE.md](ARCHITECTURE.md).
+The frontend communicates with the backend over REST. The backend stores data in
+PostgreSQL, uses Redis for cache and Celery coordination, and runs Celery workers
+for background jobs.
 
 ## Tech Stack
 
@@ -31,9 +24,10 @@ For a deeper architecture description, see [ARCHITECTURE.md](ARCHITECTURE.md).
 | Backend | Python, Django, Django REST Framework |
 | Database | PostgreSQL 15 |
 | Cache and broker | Redis 7 |
-| Background jobs | Celery worker and Celery beat |
-| Payments | Stripe integration |
-| API docs | drf-spectacular Swagger and ReDoc |
+| Background jobs | Celery worker and Celery Beat |
+| API docs | drf-spectacular, Swagger UI, ReDoc |
+| Payments | Stripe |
+| AI | OpenAI API |
 | Containers | Docker and Docker Compose |
 
 ## Services
@@ -43,9 +37,9 @@ For a deeper architecture description, see [ARCHITECTURE.md](ARCHITECTURE.md).
 | `frontend` | Vue/Vite development server | `http://localhost:5173` |
 | `web` | Django API server | `http://localhost:8000` |
 | `db` | PostgreSQL database | host `5433`, container `5432` |
-| `redis` | Redis cache, Celery broker, Celery results | `6379` |
-| `celery_worker` | Runs async jobs | internal |
-| `celery_beat` | Runs scheduled jobs | internal |
+| `redis` | Redis cache, broker, result backend | `6379` |
+| `celery_worker` | Async task worker | internal |
+| `celery_beat` | Scheduled task runner | internal |
 
 ## Requirements
 
@@ -54,154 +48,207 @@ For a deeper architecture description, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## First Time Setup
 
-1. Clone all three repositories into the same parent folder:
-
-   ```bash
-   git clone https://github.com/bashkimhashani/ecommerce-infra
-   git clone https://github.com/bashkimhashani/ecommerce-frontend
-   git clone https://github.com/bashkimhashani/ecommerce-backend
-   ```
-
-2. Move into the infra repository:
-
-   ```bash
-   cd ecommerce-infra
-   ```
-
-3. Copy the example environment file and fill in any required local values:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Build and start all services:
-
-   ```bash
-   docker compose up --build -d
-   ```
-
-5. Apply database migrations:
-
-   ```bash
-   docker compose exec web python manage.py migrate
-   ```
-
-6. Seed demo tenant, users, catalog, inventory, cart, order, and image data:
-
-   ```bash
-   docker compose exec web python manage.py seed_demo_data
-   ```
-
-7. Create a Django superuser if you need admin access:
-
-   ```bash
-   docker compose exec web python manage.py createsuperuser
-   ```
-
-## Demo Accounts
-
-After running `seed_demo_data`, demo users are created for local testing. The
-seed command prints the available emails and shared demo password in the
-terminal output.
-
-## Daily Usage
-
-Start the stack:
+Clone all repositories into the same parent folder:
 
 ```bash
-docker compose up -d
+git clone https://github.com/bashkimhashani/ecommerce-backend.git
+git clone https://github.com/bashkimhashani/ecommerce-frontend.git
+git clone https://github.com/bashkimhashani/ecommerce-infra.git
 ```
 
-Stop the stack:
+Move into this repository:
 
 ```bash
-docker compose down
+cd path/to/Vendora/ecommerce-infra
 ```
 
-View backend logs:
+Create the local environment file:
 
 ```bash
-docker compose logs -f web
+cp .env.example .env
 ```
 
-Apply new migrations after pulling backend changes:
-
-```bash
-docker compose exec web python manage.py migrate
-```
-
-Refresh demo database data:
-
-```bash
-docker compose exec web python manage.py seed_demo_data
-```
-
-Rebuild after dependency changes:
+Build and start all services:
 
 ```bash
 docker compose up --build -d
+```
+
+Apply migrations and seed demo data:
+
+```bash
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py seed_demo_data
 ```
 
 ## Local URLs
 
 - Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:8000/api`
-- Swagger: `http://localhost:8000/api/docs`
-- ReDoc: `http://localhost:8000/api/redoc`
-- Django admin: `http://localhost:8000/admin`
+- Backend: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/api/docs/`
+- ReDoc: `http://localhost:8000/api/redoc/`
+- OpenAPI schema: `http://localhost:8000/api/schema/`
+- Django admin: `http://localhost:8000/admin/`
 
-## Common Tasks
+Use `http://localhost:5173` for the frontend because local CORS is configured
+for that origin.
 
-Run backend tests:
+## Demo Accounts
 
-```bash
-docker compose exec web python -m pytest
+After running `seed_demo_data`, these users are available:
+
+```text
+admin@example.com
+vendor@example.com
+gaming.vendor@example.com
+office.vendor@example.com
+customer@example.com
 ```
 
-Open a Django shell:
+Password:
 
-```bash
-docker compose exec web python manage.py shell
+```text
+DemoPass123!
 ```
 
-Open a database shell:
+## Daily Commands
+
+Start services:
 
 ```bash
-docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+docker compose up -d
 ```
 
-Restart one service:
+Stop services:
 
 ```bash
-docker compose restart web
+docker compose down
 ```
 
-## Troubleshooting
-
-If products load but images do not appear, refresh the demo data:
-
-```bash
-docker compose exec web python manage.py seed_demo_data
-```
-
-If an API endpoint fails after pulling new backend code, apply migrations:
-
-```bash
-docker compose exec web python manage.py migrate
-```
-
-If containers behave unexpectedly after dependency changes, rebuild:
+Rebuild services:
 
 ```bash
 docker compose up --build -d
 ```
 
-If you need to reset local containers and volumes, stop the stack and remove
-volumes:
+Show service status:
+
+```bash
+docker compose ps
+```
+
+Backend logs:
+
+```bash
+docker compose logs -f web
+```
+
+Frontend logs:
+
+```bash
+docker compose logs -f frontend
+```
+
+Run migrations:
+
+```bash
+docker compose exec web python manage.py migrate
+```
+
+Refresh demo data:
+
+```bash
+docker compose exec web python manage.py seed_demo_data
+```
+
+Run backend tests:
+
+```bash
+docker compose exec web python manage.py test
+```
+
+Run frontend tests:
+
+```bash
+docker compose exec frontend npm run test
+```
+
+## Environment File
+
+The `.env` file is loaded by Docker Compose. Important variables include:
+
+```env
+POSTGRES_DB=ecommerce_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+REDIS_URL=redis://redis:6379/0
+FRONTEND_URL=http://localhost:5173
+STRIPE_SECRET_KEY=sk_test_replace_me
+STRIPE_PUBLISHABLE_KEY=pk_test_replace_me
+STRIPE_WEBHOOK_SECRET=whsec_replace_me
+OPENAI_API_KEY=
+AWS_STORAGE_BUCKET_NAME=
+```
+
+Do not commit real API keys or secrets.
+
+## Reset Local Data
+
+To remove containers and database volumes:
 
 ```bash
 docker compose down -v
+docker compose up --build -d
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py seed_demo_data
 ```
 
-After removing volumes, run migrations and seed data again.
+## Troubleshooting
 
+If the frontend shows `Failed to fetch`, check that the backend is running:
+
+```bash
+docker compose ps
+docker compose logs -f web
+```
+
+If API errors mention missing columns, run migrations:
+
+```bash
+docker compose exec web python manage.py migrate
+```
+
+If products are missing images, reseed demo data:
+
+```bash
+docker compose exec web python manage.py seed_demo_data
+```
+
+If dependency files changed, rebuild:
+
+```bash
+docker compose up --build -d
+```
+
+## Git Workflow
+
+Each repository has its own Git history. Pull or push inside the repository that
+changed:
+
+```bash
+cd path/to/Vendora/ecommerce-infra
+git checkout main
+git pull origin main
+git checkout -b feature/yourname/task-name
+```
+
+Commit and push:
+
+```bash
+git add .
+git commit -m "type: describe the change"
+git push origin feature/yourname/task-name
+```
